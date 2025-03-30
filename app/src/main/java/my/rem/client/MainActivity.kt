@@ -1,7 +1,6 @@
 package my.rem.client
 
 import android.app.Activity
-import android.app.IntentService
 import android.content.Intent
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
@@ -30,8 +29,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
         if (requestCode == REQUEST_CODE_SCREEN_CAPTURE && resultCode == Activity.RESULT_OK && data != null) {
             val intent = Intent(this, ScreenCaptureService::class.java).apply {
                 putExtra("resultCode", resultCode)
@@ -39,5 +36,6 @@ class MainActivity : AppCompatActivity() {
             }
             startForegroundService(intent)
         }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 }

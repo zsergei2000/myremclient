@@ -78,7 +78,7 @@ class ScreenCaptureService : Service() {
 
             Thread {
                 try {
-                    val socket = Socket("192.168.1.100", 12346) // Заменить на IP своего ПК
+                    val socket = Socket("192.168.1.145", 12346) // Заменить на IP своего ПК
                     val output: OutputStream = socket.getOutputStream()
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 50, output)
                     output.flush()

@@ -2,18 +2,20 @@
 agp = "8.9.1"
 kotlin = "2.0.21"
 coreKtx = "1.15.0"
+lifecycleRuntimeKtx = "2.8.7"
+appcompat = "1.6.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.8.7"
 
 [plugins]
-android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 
 [libraries]
-androidx.core.ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx.lifecycle.runtime.ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidxCoreKtx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidxLifecycleRuntimeKtx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidxAppcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx.junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx.espresso.core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidxJunit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidxEspressoCore = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

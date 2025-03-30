@@ -1,13 +1,11 @@
-// app/build.gradle.kts
-
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.kotlinAndroid)
 }
 
 android {
     namespace = "my.rem.client"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "my.rem.client"
@@ -60,10 +58,11 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidxCoreKtx)
+    implementation(libs.androidxLifecycleRuntimeKtx)
+    implementation(libs.androidxAppcompat)
 
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidxJunit)
+    androidTestImplementation(libs.androidxEspressoCore)
 }
