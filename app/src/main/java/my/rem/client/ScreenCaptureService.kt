@@ -2,6 +2,7 @@ package my.rem.client
 
 import android.app.*
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.PixelFormat
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
@@ -13,9 +14,6 @@ import android.util.DisplayMetrics
 import android.view.WindowManager
 import java.io.OutputStream
 import java.net.Socket
-import javax.imageio.ImageIO
-import android.graphics.Bitmap
-import android.media.Image
 
 class ScreenCaptureService : Service() {
 
@@ -24,7 +22,8 @@ class ScreenCaptureService : Service() {
     private lateinit var imageReader: ImageReader
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val resultCode = intent?.getIntExtra("resultCode", Activity.RESULT_CANCELED) ?: return START_NOT_STICKY
+        val resultCode = intent?.getIntExtra("resultCode", Activity.RESULT_CANCELED)
+            ?: return START_NOT_STICKY
         val data = intent.getParcelableExtra<Intent>("data") ?: return START_NOT_STICKY
 
         startForeground(1, createNotification())
@@ -43,7 +42,10 @@ class ScreenCaptureService : Service() {
         wm.defaultDisplay.getRealMetrics(metrics)
 
         imageReader = ImageReader.newInstance(
-            metrics.widthPixels, metrics.heightPixels, PixelFormat.RGBA_8888, 2
+            metrics.widthPixels,
+            metrics.heightPixels,
+            PixelFormat.RGBA_8888,
+            2
         )
 
         virtualDisplay = mediaProjection.createVirtualDisplay(
@@ -53,11 +55,13 @@ class ScreenCaptureService : Service() {
             metrics.densityDpi,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             imageReader.surface,
-            null, null
+            null,
+            null
         )
 
         imageReader.setOnImageAvailableListener({ reader ->
-            val image: Image = reader.acquireLatestImage() ?: return@setOnImageAvailableListener
+            val image = reader.acquireLatestImage() ?: return@setOnImageAvailableListener
+
             val planes = image.planes
             val buffer = planes[0].buffer
             val pixelStride = planes[0].pixelStride
@@ -72,10 +76,9 @@ class ScreenCaptureService : Service() {
             bitmap.copyPixelsFromBuffer(buffer)
             image.close()
 
-            // Отправка по сети
             Thread {
                 try {
-                    val socket = Socket("192.168.1.100", 12346) // замените на IP компьютера
+                    val socket = Socket("192.168.1.100", 12346) // Заменить на IP своего ПК
                     val output: OutputStream = socket.getOutputStream()
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 50, output)
                     output.flush()
@@ -92,11 +95,16 @@ class ScreenCaptureService : Service() {
         val channelId = "screen_capture_channel"
         val channelName = "Screen Capture"
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        manager.createNotificationChannel(
-            NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_LOW)
-        )
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                channelName,
+                NotificationManager.IMPORTANCE_LOW
+            )
+            manager.createNotificationChannel(channel)
+        }
         return Notification.Builder(this, channelId)
-            .setContentTitle("Трансляция экрана")
+            .setContentTitle("Передача экрана")
             .setSmallIcon(android.R.drawable.ic_menu_camera)
             .build()
     }
