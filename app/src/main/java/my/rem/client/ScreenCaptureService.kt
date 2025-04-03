@@ -35,6 +35,7 @@ class ScreenCaptureService : Service() {
     private var lastFrameTime = 0L
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // ⏹ или ❌ — обработка остановки
         if (intent?.action == "STOP_CAPTURE") {
             Log.d("ScreenCaptureService", "Получен STOP_CAPTURE — завершаем сервис")
             stopSelf()
@@ -123,19 +124,25 @@ class ScreenCaptureService : Service() {
             val rowStride = planes[0].rowStride
             val rowPadding = rowStride - pixelStride * image.width
 
-            val bitmap = Bitmap.createBitmap(
+            // ⛔️ Старый мусорный Bitmap
+            // val bitmap = Bitmap.createBitmap(image.width + rowPadding / pixelStride, image.height, Bitmap.Config.ARGB_8888)
+
+            // ✅ Новый: обрезаем артефакты
+            val fullBitmap = Bitmap.createBitmap(
                 image.width + rowPadding / pixelStride,
                 image.height,
                 Bitmap.Config.ARGB_8888
             )
-            bitmap.copyPixelsFromBuffer(buffer)
+            fullBitmap.copyPixelsFromBuffer(buffer)
+            val finalBitmap = Bitmap.createBitmap(fullBitmap, 0, 0, image.width, image.height)
+
             image.close()
 
             Thread {
                 try {
                     synchronized(this) {
                         val stream = ByteArrayOutputStream()
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 40, stream)
+                        finalBitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
                         val byteArray = stream.toByteArray()
                         output?.writeInt(byteArray.size)
                         output?.write(byteArray)

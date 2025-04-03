@@ -55,6 +55,21 @@ class FloatingOverlayView(private val context: Context) {
             Toast.makeText(context, "Захват экрана остановлен", Toast.LENGTH_SHORT).show()
         }
 
+        floatView?.findViewById<Button>(R.id.btnClose)?.setOnClickListener {
+            try {
+                val stopIntent = Intent(context, ScreenCaptureService::class.java).apply {
+                    action = "STOP_CAPTURE"
+                }
+                context.startService(stopIntent)
+                Toast.makeText(context, "Приложение закрыто", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Log.e("FloatingOverlay", "Ошибка остановки сервиса: ${e.message}")
+            }
+
+            removeFloatingView()
+        }
+
+
         windowManager.addView(floatView, layoutParams)
     }
 
