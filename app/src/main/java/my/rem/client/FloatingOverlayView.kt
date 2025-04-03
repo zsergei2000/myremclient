@@ -48,7 +48,10 @@ class FloatingOverlayView(private val context: Context) {
         }
 
         floatView?.findViewById<Button>(R.id.btnStop)?.setOnClickListener {
-            context.stopService(Intent(context, ScreenCaptureService::class.java))
+            val stopIntent = Intent(context, ScreenCaptureService::class.java).apply {
+                action = "STOP_CAPTURE"
+            }
+            context.startService(stopIntent)
             Toast.makeText(context, "Захват экрана остановлен", Toast.LENGTH_SHORT).show()
         }
 

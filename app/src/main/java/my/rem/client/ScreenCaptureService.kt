@@ -32,8 +32,11 @@ class ScreenCaptureService : Service() {
     private val isConnected = AtomicBoolean(false)
     private val isCapturing = AtomicBoolean(false)
 
+    private var lastFrameTime = 0L
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == "STOP_CAPTURE") {
+            Log.d("ScreenCaptureService", "Получен STOP_CAPTURE — завершаем сервис")
             stopSelf()
             return START_NOT_STICKY
         }
@@ -82,17 +85,21 @@ class ScreenCaptureService : Service() {
         val wm = getSystemService(WINDOW_SERVICE) as WindowManager
         wm.defaultDisplay.getRealMetrics(metrics)
 
+        val scale = 0.5f
+        val width = (metrics.widthPixels * scale).toInt()
+        val height = (metrics.heightPixels * scale).toInt()
+
         imageReader = ImageReader.newInstance(
-            metrics.widthPixels,
-            metrics.heightPixels,
+            width,
+            height,
             PixelFormat.RGBA_8888,
             2
         )
 
         virtualDisplay = mediaProjection.createVirtualDisplay(
             "ScreenCapture",
-            metrics.widthPixels,
-            metrics.heightPixels,
+            width,
+            height,
             metrics.densityDpi,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             imageReader.surface,
@@ -102,6 +109,13 @@ class ScreenCaptureService : Service() {
 
         imageReader.setOnImageAvailableListener({ reader ->
             val image = reader.acquireLatestImage() ?: return@setOnImageAvailableListener
+
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastFrameTime < 100) {
+                image.close()
+                return@setOnImageAvailableListener
+            }
+            lastFrameTime = currentTime
 
             val planes = image.planes
             val buffer = planes[0].buffer
@@ -121,7 +135,7 @@ class ScreenCaptureService : Service() {
                 try {
                     synchronized(this) {
                         val stream = ByteArrayOutputStream()
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, stream)
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 40, stream)
                         val byteArray = stream.toByteArray()
                         output?.writeInt(byteArray.size)
                         output?.write(byteArray)
@@ -155,10 +169,25 @@ class ScreenCaptureService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        Log.d("ScreenCaptureService", "onDestroy: освобождение ресурсов")
+
+        try {
+            imageReader.setOnImageAvailableListener(null, null)
+        } catch (_: Exception) {}
+
+        try {
+            virtualDisplay.release()
+        } catch (_: Exception) {}
+
+        try {
+            mediaProjection.stop()
+        } catch (_: Exception) {}
+
         try {
             socket?.close()
             output?.close()
         } catch (_: Exception) {}
+
         isCapturing.set(false)
     }
 
